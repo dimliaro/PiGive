@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import CampaignCard from '../components/CampaignCard'
 import FeaturedHero from '../components/FeaturedHero'
 import QuickDonateModal from '../components/QuickDonateModal'
-import PiLogo from '../components/PiLogo'
 import { getCampaigns } from '../api/client'
 
 const CATEGORIES = [
@@ -102,8 +101,13 @@ export default function Home() {
       {/* Hero */}
       <div className="text-center mb-8">
         <h1 className="text-5xl font-black mb-3 tracking-tight flex items-center justify-center gap-3">
-          <PiLogo size={48} />
-          <span>Pi<span className="text-yellow-400">Give</span></span>
+          <span
+            style={{ fontFamily: "'Cinzel', serif", fontSize: '3.5rem', lineHeight: 1 }}
+            className="text-yellow-400 drop-shadow-[0_0_16px_rgba(240,192,64,0.7)]"
+          >
+            π
+          </span>
+          Pi<span className="text-yellow-400">Give</span>
         </h1>
         <p className="text-gray-400 text-lg max-w-xl mx-auto leading-relaxed">
           Micro-donations for local social causes.<br />

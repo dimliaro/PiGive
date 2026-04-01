@@ -1,13 +1,15 @@
 import { Link } from 'react-router-dom'
-import PiLogo from './PiLogo'
 
 export default function Navbar() {
   return (
     <nav className="glass-nav sticky top-0 z-50 relative">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
-          <span className="group-hover:scale-110 transition-transform inline-flex">
-            <PiLogo size={30} />
+          <span
+            style={{ fontFamily: "'Cinzel', serif", fontSize: '1.6rem', lineHeight: 1 }}
+            className="text-yellow-400 drop-shadow-[0_0_8px_rgba(240,192,64,0.6)] group-hover:drop-shadow-[0_0_14px_rgba(240,192,64,0.9)] transition-all"
+          >
+            π
           </span>
           <span className="font-extrabold text-xl text-white tracking-tight">
             Pi<span className="text-yellow-400">Give</span>
