@@ -7,8 +7,8 @@
     <!-- Pi SDK — φορτώνεται μόνο στο Pi Browser -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <script>try { Pi.init({ version: "2.0" }); } catch(e) {}</script>
+    <script>function _initPi() { try { Pi.init({ version: "2.0" }); } catch(e) {} }</script>
+    <script async src="https://sdk.minepi.com/pi-sdk.js" onload="_initPi()"></script>
   </head>
   <body>
     <div id="root"></div>
