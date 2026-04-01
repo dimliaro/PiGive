@@ -7,7 +7,12 @@
     <!-- Pi SDK — φορτώνεται μόνο στο Pi Browser -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
-    <script>function _initPi() { try { Pi.init({ version: "2.0" }); } catch(e) {} }</script>
+    <script>
+      function _initPi() { try { Pi.init({ version: "2.0" }); } catch(e) {} }
+      window.__errors = [];
+      window.onerror = function(m,s,l,c,e){ window.__errors.push(m); document.title='ERR:'+m.slice(0,40); };
+      window.addEventListener('unhandledrejection', function(e){ window.__errors.push(String(e.reason)); document.title='REJ:'+String(e.reason).slice(0,40); });
+    </script>
     <script async src="https://sdk.minepi.com/pi-sdk.js" onload="_initPi()"></script>
   </head>
   <body>
