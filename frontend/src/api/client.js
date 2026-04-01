@@ -7,7 +7,10 @@ const api = axios.create({
 
 // --- Campaigns ---
 
-export const getCampaigns = () => api.get('/campaigns').then(r => r.data)
+export const getCampaigns = () => api.get('/campaigns').then(r => {
+  if (!Array.isArray(r.data)) throw new Error('Invalid response')
+  return r.data
+})
 
 export const getCampaign = (id) => api.get(`/campaigns/${id}`).then(r => r.data)
 
