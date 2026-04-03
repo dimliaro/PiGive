@@ -12,7 +12,7 @@ export default function Navbar() {
             π
           </span>
           <span className="font-extrabold text-xl text-white tracking-tight">
-            Pi<span className="text-yellow-400">Give</span>
+            Rip<span className="text-yellow-400">pl</span>
           </span>
         </Link>
 

@@ -35,11 +35,11 @@ app.use('/api/payments',  paymentsRouter)
 
 // Health check (used by UptimeRobot)
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', app: 'PiGive', version: '0.1.0' })
+  res.json({ status: 'ok', app: 'Rippl', version: '0.1.0' })
 })
 
 // Start HTTP server immediately so healthcheck passes right away
-app.listen(PORT, () => console.log(`PiGive backend on port ${PORT}`))
+app.listen(PORT, () => console.log(`Rippl backend on port ${PORT}`))
 
 // Connect to MongoDB (after server is already listening)
 mongoose

@@ -9,7 +9,7 @@ const api = axios.create({
 
 export function getLocalCampaigns() {
   try {
-    return JSON.parse(localStorage.getItem('pigive_campaigns') || '[]')
+    return JSON.parse(localStorage.getItem('rippl_campaigns') || '[]')
   } catch {
     return []
   }
@@ -18,7 +18,7 @@ export function getLocalCampaigns() {
 function saveLocalCampaign(campaign) {
   const existing = getLocalCampaigns()
   existing.unshift(campaign)
-  localStorage.setItem('pigive_campaigns', JSON.stringify(existing.slice(0, 50)))
+  localStorage.setItem('rippl_campaigns', JSON.stringify(existing.slice(0, 50)))
 }
 
 // --- Campaigns ---
