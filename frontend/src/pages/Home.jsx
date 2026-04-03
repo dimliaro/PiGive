@@ -107,7 +107,7 @@ export default function Home() {
           >
             π
           </span>
-          Rip<span className="text-yellow-400">pl</span>
+          <span>Rip<span className="text-yellow-400">pl</span></span>
         </h1>
         <p className="text-gray-400 text-lg max-w-xl mx-auto leading-relaxed">
           Micro-donations for local social causes.<br />
