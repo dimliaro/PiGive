@@ -38,14 +38,11 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', app: 'PiGive', version: '0.1.0' })
 })
 
-// MongoDB + start
+// Start HTTP server immediately so healthcheck passes right away
+app.listen(PORT, () => console.log(`PiGive backend on port ${PORT}`))
+
+// Connect to MongoDB (after server is already listening)
 mongoose
   .connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('MongoDB connected')
-    app.listen(PORT, () => console.log(`PiGive backend on port ${PORT}`))
-  })
-  .catch((err) => {
-    console.error('MongoDB connection error:', err.message)
-    process.exit(1)
-  })
+  .then(() => console.log('MongoDB connected'))
+  .catch((err) => console.error('MongoDB connection error:', err.message))
