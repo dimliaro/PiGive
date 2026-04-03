@@ -10,18 +10,14 @@ const app  = express()
 const PORT = process.env.PORT || 3001
 
 // CORS — allow Pi Browser origin + your Vercel frontend
-const allowedOrigins = [
-  'https://minepi.com',
-  'https://*.minepi.com',
-  process.env.FRONTEND_URL,        // e.g. https://pigive.vercel.app
-].filter(Boolean)
-
 app.use(cors({
   origin: (origin, cb) => {
-    // Allow requests with no origin (server-to-server, curl) and allowed origins
-    if (!origin || allowedOrigins.some(o => origin.startsWith(o.replace('*', '')))) {
-      return cb(null, true)
-    }
+    // Allow server-to-server requests (no origin)
+    if (!origin) return cb(null, true)
+    // Allow any minepi.com subdomain (Pi Browser)
+    if (origin.endsWith('.minepi.com') || origin === 'https://minepi.com') return cb(null, true)
+    // Allow our frontend
+    if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) return cb(null, true)
     cb(new Error(`CORS blocked: ${origin}`))
   },
   credentials: true,
