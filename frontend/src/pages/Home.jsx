@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import CampaignCard from '../components/CampaignCard'
 import FeaturedHero from '../components/FeaturedHero'
 import QuickDonateModal from '../components/QuickDonateModal'
-import { getCampaigns } from '../api/client'
+import { getCampaigns, getLocalCampaigns } from '../api/client'
 
 const CATEGORIES = [
   { value: '',             label: 'All' },
@@ -74,7 +74,7 @@ export default function Home() {
   useEffect(() => {
     getCampaigns()
       .then(setCampaigns)
-      .catch(() => setCampaigns(MOCK_CAMPAIGNS))
+      .catch(() => setCampaigns([...getLocalCampaigns(), ...MOCK_CAMPAIGNS]))
       .finally(() => setLoading(false))
   }, [])
 
