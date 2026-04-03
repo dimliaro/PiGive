@@ -4,7 +4,7 @@
     {
       "name": "PiGive Frontend",
       "runtimeExecutable": "/Users/dimitris/.nvm/versions/node/v24.14.1/bin/node",
-      "runtimeArgs": ["/Users/dimitris/Desktop/Projects/PiNetworkApp/frontend/node_modules/.bin/vite", "--port", "5173"],
+      "runtimeArgs": ["/Users/dimitris/Desktop/Projects/PiNetworkApp/frontend/node_modules/.bin/vite", "/Users/dimitris/Desktop/Projects/PiNetworkApp/frontend", "--port", "5173"],
       "port": 5173
     }
   ]
