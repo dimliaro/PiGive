@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createCampaign } from '../api/client'
+import ImageUploader from '../components/ImageUploader'
 
 const CATEGORIES = [
   { value: 'school', label: '🏫 Schools' },
@@ -108,25 +109,11 @@ export default function CreateCampaign() {
           <p className="text-xs text-gray-600 text-right mt-1">{form.description.length}/500</p>
         </div>
 
-        {/* Image URL */}
-        <div>
-          <label className="block text-sm text-gray-400 mb-1">Image URL <span className="text-gray-600">(optional)</span></label>
-          <input
-            name="imageUrl"
-            value={form.imageUrl}
-            onChange={handleChange}
-            placeholder="https://... paste a photo link"
-            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
-          />
-          {form.imageUrl && (
-            <img
-              src={form.imageUrl}
-              alt="preview"
-              className="mt-2 w-full h-36 object-cover rounded-xl opacity-80"
-              onError={e => e.target.style.display = 'none'}
-            />
-          )}
-        </div>
+        {/* Image upload */}
+        <ImageUploader
+          value={form.imageUrl}
+          onChange={url => setForm(prev => ({ ...prev, imageUrl: url }))}
+        />
 
         {/* Category */}
         <div>

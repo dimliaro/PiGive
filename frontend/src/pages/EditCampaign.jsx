@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getCampaign, editCampaign } from '../api/client'
+import ImageUploader from '../components/ImageUploader'
 
 export default function EditCampaign() {
   const { id } = useParams()
@@ -73,18 +74,10 @@ export default function EditCampaign() {
           <p className="text-xs text-gray-600 text-right mt-1">{form.description.length}/500</p>
         </div>
 
-        <div>
-          <label className="block text-sm text-gray-400 mb-1">Image URL</label>
-          <input
-            value={form.imageUrl}
-            onChange={e => setForm(p => ({ ...p, imageUrl: e.target.value }))}
-            placeholder="https://..."
-            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
-          />
-          {form.imageUrl && (
-            <img src={form.imageUrl} alt="preview" className="mt-2 w-full h-36 object-cover rounded-xl opacity-80" onError={e => e.target.style.display = 'none'} />
-          )}
-        </div>
+        <ImageUploader
+          value={form.imageUrl}
+          onChange={url => setForm(p => ({ ...p, imageUrl: url }))}
+        />
 
         <div>
           <label className="block text-sm text-gray-400 mb-1">Extend deadline by (days) <span className="text-gray-600">optional, max 30</span></label>

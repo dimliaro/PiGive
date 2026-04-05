@@ -191,6 +191,17 @@ export default function CampaignDetail() {
         </button>
       </div>
 
+      {/* Funded celebration banner */}
+      {pct >= 100 && (
+        <Link
+          to={`/campaign/${id}/funded`}
+          className="block mb-5 rounded-2xl border border-yellow-400/40 bg-yellow-400/10 px-5 py-4 text-center hover:bg-yellow-400/15 transition-colors"
+        >
+          <p className="text-yellow-400 font-bold text-base">🎉 Goal reached! See the celebration →</p>
+          <p className="text-yellow-400/70 text-sm mt-0.5">π {campaign.raised} raised by {campaign.donorCount} Pioneers</p>
+        </Link>
+      )}
+
       {/* Almost there nudge */}
       {isAlmostFunded && (
         <div className="mb-5 rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-5 py-4 flex items-center gap-3">

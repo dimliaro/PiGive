@@ -12,6 +12,7 @@ import DonationReceipt from './pages/DonationReceipt'
 import Admin from './pages/Admin'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
+import CampaignFunded from './pages/CampaignFunded'
 import { Link } from 'react-router-dom'
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/create" element={<CreateCampaign />} />
           <Route path="/my-campaigns" element={<MyCampaigns />} />
           <Route path="/campaign/:id/edit" element={<EditCampaign />} />
+          <Route path="/campaign/:id/funded" element={<CampaignFunded />} />
           <Route path="/donation/:paymentId" element={<DonationReceipt />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/privacy" element={<Privacy />} />
