@@ -1,6 +1,7 @@
 const express = require('express')
 const { body, validationResult } = require('express-validator')
 const Campaign = require('../models/Campaign')
+const Donation = require('../models/Donation')
 
 const router = express.Router()
 
@@ -50,6 +51,7 @@ router.post(
       const { title, description, category, goal, organizer, durationDays, imageUrl, creatorPiUid } = req.body
       const deadline = new Date(Date.now() + durationDays * 86400000)
 
+      const { creatorUsername } = req.body
       const campaign = await Campaign.create({
         title,
         description,
@@ -59,10 +61,56 @@ router.post(
         deadline,
         imageUrl: imageUrl || '',
         creatorPiUid: creatorPiUid || '',
+        creatorUsername: creatorUsername || '',
         isApproved: true,
       })
 
       res.status(201).json(campaign)
+    } catch (err) {
+      res.status(500).json({ error: 'Server error' })
+    }
+  }
+)
+
+// GET /api/campaigns/:id/donors — Top donors for a campaign
+router.get('/:id/donors', async (req, res) => {
+  try {
+    const donations = await Donation.find({
+      campaignId: req.params.id,
+      status: 'completed',
+    })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .select('donorUsername amount createdAt')
+
+    res.json(donations)
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// POST /api/campaigns/:id/updates — Creator posts a progress update
+router.post(
+  '/:id/updates',
+  [body('text').trim().notEmpty().isLength({ max: 300 })],
+  async (req, res) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) return res.status(400).json({ error: errors.array()[0].msg })
+
+    try {
+      const { text, creatorPiUid } = req.body
+      const campaign = await Campaign.findById(req.params.id)
+      if (!campaign) return res.status(404).json({ error: 'Campaign not found' })
+
+      // Only the creator can post updates
+      if (campaign.creatorPiUid && creatorPiUid !== campaign.creatorPiUid) {
+        return res.status(403).json({ error: 'Only the campaign creator can post updates' })
+      }
+
+      campaign.updates.push({ text })
+      await campaign.save()
+
+      res.json(campaign.updates[campaign.updates.length - 1])
     } catch (err) {
       res.status(500).json({ error: 'Server error' })
     }

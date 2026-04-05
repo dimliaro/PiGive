@@ -27,7 +27,8 @@ export default function DonateButton({ campaign, onSuccess }) {
 
     try {
       setStatus('auth')
-      await authenticateUser()
+      const authResult = await authenticateUser()
+      const donorUsername = authResult?.user?.username || ''
 
       setStatus('waiting')
 
@@ -40,9 +41,9 @@ export default function DonateButton({ campaign, onSuccess }) {
             await approvePayment(paymentId)
           },
           onComplete: async (paymentId, txid) => {
-            await completePayment(paymentId, txid, campaign._id, finalAmount)
+            await completePayment(paymentId, txid, campaign._id, finalAmount, donorUsername)
             setStatus('success')
-            onSuccess && onSuccess(finalAmount)
+            onSuccess && onSuccess(finalAmount, donorUsername)
           },
           onCancel: () => {
             setStatus('idle')

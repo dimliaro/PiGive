@@ -52,12 +52,15 @@ export default function CreateCampaign() {
 
     setStatus('loading')
     try {
-      const creatorPiUid = window.Pi ? (await window.Pi.authenticate(['username'], () => {}).catch(() => null))?.user?.uid : ''
+      const authResult = window.Pi ? await window.Pi.authenticate(['username'], () => {}).catch(() => null) : null
+      const creatorPiUid = authResult?.user?.uid || ''
+      const creatorUsername = authResult?.user?.username || ''
       const campaign = await createCampaign({
         ...form,
         goal: parseFloat(form.goal),
         durationDays: parseInt(form.durationDays),
-        creatorPiUid: creatorPiUid || '',
+        creatorPiUid,
+        creatorUsername,
       })
       saveMyCampaignId(campaign._id)
       navigate(`/campaign/${campaign._id}`)

@@ -55,7 +55,7 @@ router.post('/approve', async (req, res) => {
  * Ο χρήστης επιβεβαίωσε στο Pi wallet — ολοκληρώνουμε server-side.
  */
 router.post('/complete', async (req, res) => {
-  const { paymentId, txid, campaignId, amount: clientAmount } = req.body
+  const { paymentId, txid, campaignId, amount: clientAmount, donorUsername } = req.body
 
   if (!paymentId || !txid || !campaignId) {
     return res.status(400).json({ error: 'paymentId, txid, and campaignId are required' })
@@ -82,6 +82,7 @@ router.post('/complete', async (req, res) => {
         campaignId,
         amount,
         donorPiUid: paymentData.user_uid,
+        donorUsername: donorUsername || '',
         status: 'completed',
       },
       { upsert: true, new: true }
