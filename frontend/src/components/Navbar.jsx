@@ -6,7 +6,7 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
           <img
-            src="/rippl-logo.png"
+            src="/rippl-logo.svg"
             alt="Rippl"
             className="w-8 h-8 rounded-lg object-cover group-hover:opacity-90 transition-opacity"
           />
