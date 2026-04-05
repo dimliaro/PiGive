@@ -8,9 +8,9 @@ export default function ProgressBar({ current, goal, glowing }) {
         <span>
           <span className="text-yellow-400 font-bold">π {current.toFixed(1)}</span> raised
         </span>
-        <span>goal π {goal}</span>
+        <span><span className="text-white font-semibold">{pct}%</span> of π {goal}</span>
       </div>
-      <div className="w-full bg-gray-800/60 rounded-full h-2.5 relative">
+      <div className="w-full bg-gray-800/60 rounded-full h-2.5">
         <div
           className={`h-2.5 rounded-full transition-all duration-700 ease-out ${
             isGlowing
@@ -19,9 +19,6 @@ export default function ProgressBar({ current, goal, glowing }) {
           }`}
           style={{ width: `${pct}%` }}
         />
-        {pct > 15 && (
-          <span className="absolute right-0 -top-5 text-xs text-gray-500">{pct}%</span>
-        )}
       </div>
     </div>
   )
