@@ -3,6 +3,7 @@ import CampaignCard from '../components/CampaignCard'
 import FeaturedHero from '../components/FeaturedHero'
 import QuickDonateModal from '../components/QuickDonateModal'
 import { getCampaigns, getLocalCampaigns } from '../api/client'
+import { useGlobalStats } from '../context/AppContext'
 
 const CATEGORIES = [
   { value: '',             label: 'All' },
@@ -72,10 +73,11 @@ export default function Home() {
   const [smartFilter, setSmartFilter] = useState('') // 'new' | 'almost'
   const [loading, setLoading] = useState(false)
   const [quickDonateCampaign, setQuickDonateCampaign] = useState(null)
+  const { setCampaignCount } = useGlobalStats()
 
   useEffect(() => {
     getCampaigns()
-      .then(setCampaigns)
+      .then(data => { setCampaigns(data); setCampaignCount(data.filter(c => new Date(c.deadline) > Date.now()).length) })
       .catch(() => setCampaigns([...getLocalCampaigns(), ...MOCK_CAMPAIGNS]))
       .finally(() => setLoading(false))
   }, [])

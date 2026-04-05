@@ -20,9 +20,13 @@ export function AppProvider({ children }) {
   const [globalStats, setGlobalStats] = useState({
     totalRaised:    1284.5,
     totalDonors:    2571,
-    totalCampaigns: 14,
+    totalCampaigns: 0,
   })
   const [confettiActive, setConfettiActive] = useState(false)
+
+  const setCampaignCount = useCallback((count) => {
+    setGlobalStats(prev => ({ ...prev, totalCampaigns: count }))
+  }, [])
 
   const pushDonation = useCallback((donor, amount, campaign) => {
     const entry = { id: nextId, donor, amount, campaign }
@@ -41,12 +45,12 @@ export function AppProvider({ children }) {
   }, [])
 
   return (
-    <AppCtx.Provider value={{ recentDonations, pushDonation, globalStats, confettiActive, triggerConfetti }}>
+    <AppCtx.Provider value={{ recentDonations, pushDonation, globalStats, setCampaignCount, confettiActive, triggerConfetti }}>
       {children}
     </AppCtx.Provider>
   )
 }
 
 export const useDonationFeed  = () => { const ctx = useContext(AppCtx); return { recentDonations: ctx.recentDonations, pushDonation: ctx.pushDonation } }
-export const useGlobalStats   = () => useContext(AppCtx).globalStats
+export const useGlobalStats   = () => { const ctx = useContext(AppCtx); return { ...ctx.globalStats, setCampaignCount: ctx.setCampaignCount } }
 export const useConfetti      = () => { const ctx = useContext(AppCtx); return { confettiActive: ctx.confettiActive, triggerConfetti: ctx.triggerConfetti } }
