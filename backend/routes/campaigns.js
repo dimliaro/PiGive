@@ -57,8 +57,7 @@ router.post(
         goal,
         organizer,
         deadline,
-        // isApproved: false — θέλει review (αλλά για dev mode μπορούμε να βάλουμε true)
-        isApproved: process.env.NODE_ENV === 'development',
+        isApproved: true,
       })
 
       res.status(201).json(campaign)
