@@ -10,6 +10,14 @@ const CATEGORIES = [
   { value: 'other', label: '💛 Other' },
 ]
 
+function saveMyCampaignId(id) {
+  try {
+    const ids = JSON.parse(localStorage.getItem('my_campaign_ids') || '[]')
+    if (!ids.includes(id)) ids.unshift(id)
+    localStorage.setItem('my_campaign_ids', JSON.stringify(ids.slice(0, 50)))
+  } catch {}
+}
+
 export default function CreateCampaign() {
   const navigate = useNavigate()
   const [form, setForm] = useState({
@@ -19,8 +27,9 @@ export default function CreateCampaign() {
     goal: '',
     organizer: '',
     durationDays: 30,
+    imageUrl: '',
   })
-  const [status, setStatus] = useState('idle') // idle | loading | error
+  const [status, setStatus] = useState('idle')
   const [error, setError] = useState('')
 
   function handleChange(e) {
@@ -43,11 +52,14 @@ export default function CreateCampaign() {
 
     setStatus('loading')
     try {
+      const creatorPiUid = window.Pi ? (await window.Pi.authenticate(['username'], () => {}).catch(() => null))?.user?.uid : ''
       const campaign = await createCampaign({
         ...form,
         goal: parseFloat(form.goal),
         durationDays: parseInt(form.durationDays),
+        creatorPiUid: creatorPiUid || '',
       })
+      saveMyCampaignId(campaign._id)
       navigate(`/campaign/${campaign._id}`)
     } catch (err) {
       setError(err.response?.data?.error || 'Creation failed. Please try again.')
@@ -91,6 +103,26 @@ export default function CreateCampaign() {
             maxLength={500}
           />
           <p className="text-xs text-gray-600 text-right mt-1">{form.description.length}/500</p>
+        </div>
+
+        {/* Image URL */}
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Image URL <span className="text-gray-600">(optional)</span></label>
+          <input
+            name="imageUrl"
+            value={form.imageUrl}
+            onChange={handleChange}
+            placeholder="https://... paste a photo link"
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+          />
+          {form.imageUrl && (
+            <img
+              src={form.imageUrl}
+              alt="preview"
+              className="mt-2 w-full h-36 object-cover rounded-xl opacity-80"
+              onError={e => e.target.style.display = 'none'}
+            />
+          )}
         </div>
 
         {/* Category */}
@@ -153,9 +185,7 @@ export default function CreateCampaign() {
           />
         </div>
 
-        {error && (
-          <p className="text-red-400 text-sm">{error}</p>
-        )}
+        {error && <p className="text-red-400 text-sm">{error}</p>}
 
         <button
           type="submit"
@@ -164,10 +194,6 @@ export default function CreateCampaign() {
         >
           {status === 'loading' ? 'Creating...' : 'Create Campaign'}
         </button>
-
-        <p className="text-xs text-gray-600 text-center">
-          Each campaign is reviewed before being published.
-        </p>
       </form>
     </div>
   )

@@ -47,7 +47,7 @@ router.post(
     }
 
     try {
-      const { title, description, category, goal, organizer, durationDays } = req.body
+      const { title, description, category, goal, organizer, durationDays, imageUrl, creatorPiUid } = req.body
       const deadline = new Date(Date.now() + durationDays * 86400000)
 
       const campaign = await Campaign.create({
@@ -57,6 +57,8 @@ router.post(
         goal,
         organizer,
         deadline,
+        imageUrl: imageUrl || '',
+        creatorPiUid: creatorPiUid || '',
         isApproved: true,
       })
 

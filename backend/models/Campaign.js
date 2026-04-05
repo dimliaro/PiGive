@@ -41,6 +41,10 @@ const campaignSchema = new mongoose.Schema(
     creatorPiUid: {
       type: String,
     },
+    imageUrl: {
+      type: String,
+      default: '',
+    },
     deadline: {
       type: Date,
       required: true,

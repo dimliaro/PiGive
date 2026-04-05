@@ -70,7 +70,8 @@ export default function Home() {
   const [campaigns, setCampaigns] = useState(MOCK_CAMPAIGNS)
   const [filter, setFilter] = useState('')
   const [search, setSearch] = useState('')
-  const [smartFilter, setSmartFilter] = useState('') // 'new' | 'almost'
+  const [smartFilter, setSmartFilter] = useState('')
+  const [sort, setSort] = useState('newest')
   const [loading, setLoading] = useState(false)
   const [quickDonateCampaign, setQuickDonateCampaign] = useState(null)
   const { setCampaignCount } = useGlobalStats()
@@ -85,13 +86,13 @@ export default function Home() {
   const filtered = campaigns.filter(c => {
     if (filter && c.category !== filter) return false
     if (search && !c.title.toLowerCase().includes(search.toLowerCase())) return false
-    if (smartFilter === 'new') {
-      return c.createdAt && (Date.now() - new Date(c.createdAt)) < 48 * 3600000
-    }
-    if (smartFilter === 'almost') {
-      return (c.raised / c.goal) >= 0.85
-    }
+    if (smartFilter === 'new') return c.createdAt && (Date.now() - new Date(c.createdAt)) < 48 * 3600000
+    if (smartFilter === 'almost') return (c.raised / c.goal) >= 0.85
     return true
+  }).sort((a, b) => {
+    if (sort === 'funded') return (b.raised / b.goal) - (a.raised / a.goal)
+    if (sort === 'ending') return new Date(a.deadline) - new Date(b.deadline)
+    return new Date(b.createdAt) - new Date(a.createdAt) // newest
   })
 
   // Featured = highest funded % that isn't ended
@@ -134,15 +135,24 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="mb-3">
+      {/* Search + Sort */}
+      <div className="flex gap-2 mb-3">
         <input
           type="text"
           placeholder="🔍 Search campaigns..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full bg-white/[0.05] border border-white/[0.1] rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400/50 text-sm"
+          className="flex-1 bg-white/[0.05] border border-white/[0.1] rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400/50 text-sm"
         />
+        <select
+          value={sort}
+          onChange={e => setSort(e.target.value)}
+          className="bg-white/[0.05] border border-white/[0.1] rounded-xl px-3 py-2.5 text-gray-400 focus:outline-none focus:border-yellow-400/50 text-sm"
+        >
+          <option value="newest">Newest</option>
+          <option value="funded">Most Funded</option>
+          <option value="ending">Ending Soon</option>
+        </select>
       </div>
 
       {/* Smart filters */}

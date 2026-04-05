@@ -15,12 +15,20 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <Link
-          to="/create"
-          className="btn-glow text-white font-semibold px-4 py-2 rounded-xl text-sm"
-        >
-          + New Campaign
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/my-campaigns"
+            className="text-sm text-gray-400 hover:text-white transition-colors px-3 py-2"
+          >
+            My Campaigns
+          </Link>
+          <Link
+            to="/create"
+            className="btn-glow text-white font-semibold px-4 py-2 rounded-xl text-sm"
+          >
+            + New
+          </Link>
+        </div>
       </div>
     </nav>
   )

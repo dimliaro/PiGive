@@ -6,6 +6,7 @@ import Confetti from './components/Confetti'
 import Home from './pages/Home'
 import CampaignDetail from './pages/CampaignDetail'
 import CreateCampaign from './pages/CreateCampaign'
+import MyCampaigns from './pages/MyCampaigns'
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/campaign/:id" element={<CampaignDetail />} />
           <Route path="/create" element={<CreateCampaign />} />
+          <Route path="/my-campaigns" element={<MyCampaigns />} />
         </Routes>
       </main>
       <ActivityTicker />
