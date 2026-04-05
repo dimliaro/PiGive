@@ -6,6 +6,8 @@
     <title>Rippl — Micro-Donations with Pi</title>
     <link rel="icon" type="image/png" href="/rippl-logo.png" />
     <link rel="apple-touch-icon" href="/rippl-logo.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#FACC15" />
     <meta property="og:title" content="Rippl — Micro-Donations with Pi" />
     <meta property="og:description" content="Micro-donations for local social causes. 0.01π network fee. No banks. 100% on-chain." />
     <meta property="og:image" content="/rippl-logo.png" />
@@ -14,7 +16,7 @@
     <!-- Pi SDK — φορτώνεται μόνο στο Pi Browser -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
-    <script>function _initPi() { try { Pi.init({ version: "2.0", sandbox: true }); } catch(e) {} }</script>
+    <script>function _initPi() { try { Pi.init({ version: "2.0", sandbox: __VITE_SANDBOX__ }); } catch(e) {} }</script>
     <script async src="https://sdk.minepi.com/pi-sdk.js" onload="_initPi()"></script>
   </head>
   <body>

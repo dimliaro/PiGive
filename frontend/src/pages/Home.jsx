@@ -74,6 +74,7 @@ export default function Home() {
   const [sort, setSort] = useState('newest')
   const [loading, setLoading] = useState(false)
   const [quickDonateCampaign, setQuickDonateCampaign] = useState(null)
+  const [visibleCount, setVisibleCount] = useState(6)
   const { setCampaignCount } = useGlobalStats()
 
   useEffect(() => {
@@ -82,6 +83,9 @@ export default function Home() {
       .catch(() => setCampaigns([...getLocalCampaigns(), ...MOCK_CAMPAIGNS]))
       .finally(() => setLoading(false))
   }, [])
+
+  // Reset pagination when filters change
+  useEffect(() => { setVisibleCount(6) }, [filter, search, smartFilter, sort])
 
   const filtered = campaigns.filter(c => {
     if (filter && c.category !== filter) return false
@@ -101,6 +105,8 @@ export default function Home() {
     .sort((a, b) => (b.raised / b.goal) - (a.raised / a.goal))[0] || null
 
   const rest = filtered.filter(c => c._id !== featured?._id)
+  const visibleRest = rest.slice(0, visibleCount)
+  const hasMore = rest.length > visibleCount
 
   function handleQuickDonateSuccess(amount) {
     if (!quickDonateCampaign) return
@@ -116,12 +122,7 @@ export default function Home() {
       {/* Hero */}
       <div className="text-center mb-8">
         <h1 className="text-5xl font-black mb-3 tracking-tight flex items-center justify-center gap-3">
-          <span
-            style={{ fontFamily: "'Cinzel', serif", fontSize: '3.5rem', lineHeight: 1 }}
-            className="text-yellow-400 drop-shadow-[0_0_16px_rgba(240,192,64,0.7)]"
-          >
-            π
-          </span>
+          <img src="/rippl-logo.png" alt="Rippl" className="w-12 h-12 drop-shadow-[0_0_16px_rgba(240,192,64,0.5)]" />
           <span>Rip<span className="text-yellow-400">pl</span></span>
         </h1>
         <p className="text-gray-400 text-lg max-w-xl mx-auto leading-relaxed">
@@ -204,11 +205,23 @@ export default function Home() {
       ) : rest.length === 0 ? (
         <div className="text-center text-gray-500 py-12">No campaigns found.</div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {rest.map(c => (
-            <CampaignCard key={c._id} campaign={c} onQuickDonate={setQuickDonateCampaign} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {visibleRest.map(c => (
+              <CampaignCard key={c._id} campaign={c} onQuickDonate={setQuickDonateCampaign} />
+            ))}
+          </div>
+          {hasMore && (
+            <div className="text-center mt-6">
+              <button
+                onClick={() => setVisibleCount(n => n + 6)}
+                className="px-6 py-2.5 rounded-xl border border-white/[0.1] text-gray-400 hover:text-white hover:border-white/25 transition-colors text-sm font-medium"
+              >
+                Load more ({rest.length - visibleCount} remaining)
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Quick donate modal */}

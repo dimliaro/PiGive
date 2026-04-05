@@ -5,6 +5,7 @@ const cors = require('cors')
 
 const campaignsRouter = require('./routes/campaigns')
 const paymentsRouter  = require('./routes/payments')
+const adminRouter     = require('./routes/admin')
 
 const app  = express()
 const PORT = process.env.PORT || 3001
@@ -28,6 +29,7 @@ app.use(express.json())
 // Routes
 app.use('/api/campaigns', campaignsRouter)
 app.use('/api/payments',  paymentsRouter)
+app.use('/api/admin',     adminRouter)
 
 // Health check (used by UptimeRobot)
 app.get('/api/health', (_req, res) => {
