@@ -16,7 +16,16 @@
     <!-- Pi SDK — φορτώνεται μόνο στο Pi Browser -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
-    <script>function _initPi() { try { Pi.init({ version: "2.0", sandbox: __VITE_SANDBOX__ }); } catch(e) {} }</script>
+    <script>
+      function _initPi() {
+        try {
+          // %VITE_SANDBOX% is replaced by Vite at build time with the env var value
+          Pi.init({ version: "2.0", sandbox: "%VITE_SANDBOX%" !== "false" });
+        } catch(e) {
+          console.warn('[Rippl] Pi.init failed in HTML:', e);
+        }
+      }
+    </script>
     <script async src="https://sdk.minepi.com/pi-sdk.js" onload="_initPi()"></script>
   </head>
   <body>

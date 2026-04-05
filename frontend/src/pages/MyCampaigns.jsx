@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { getCampaign } from '../api/client'
+import { getCampaign, deleteCampaign } from '../api/client'
 import ProgressBar from '../components/ProgressBar'
 
 function getMyCampaignIds() {
@@ -10,6 +10,16 @@ function getMyCampaignIds() {
 export default function MyCampaigns() {
   const [campaigns, setCampaigns] = useState([])
   const [loading, setLoading] = useState(true)
+  const [creatorUid, setCreatorUid] = useState('')
+  const [deletingId, setDeletingId] = useState(null)
+
+  useEffect(() => {
+    if (window.Pi) {
+      window.Pi.authenticate(['username'], () => {})
+        .then(r => setCreatorUid(r?.user?.uid || ''))
+        .catch(() => {})
+    }
+  }, [])
 
   useEffect(() => {
     const ids = getMyCampaignIds()
@@ -21,6 +31,37 @@ export default function MyCampaigns() {
       })
       .finally(() => setLoading(false))
   }, [])
+
+  async function handleDelete(campaign) {
+    const hasDonors = campaign.donorCount > 0
+    const confirmMsg = hasDonors
+      ? `This campaign has ${campaign.donorCount} donor(s). It will be archived (hidden from public) — existing Pi donations cannot be refunded. Are you sure?`
+      : 'Delete this campaign permanently? This cannot be undone.'
+    if (!window.confirm(confirmMsg)) return
+
+    setDeletingId(campaign._id)
+    try {
+      const result = await deleteCampaign(campaign._id, creatorUid)
+      if (result.action === 'deleted') {
+        // Remove from local storage
+        try {
+          const ids = JSON.parse(localStorage.getItem('my_campaign_ids') || '[]')
+          localStorage.setItem('my_campaign_ids', JSON.stringify(ids.filter(x => x !== campaign._id)))
+        } catch {}
+        setCampaigns(prev => prev.filter(c => c._id !== campaign._id))
+      } else {
+        // Archived — mark it visually
+        setCampaigns(prev => prev.map(c =>
+          c._id === campaign._id ? { ...c, isActive: false, isApproved: false } : c
+        ))
+        window.alert(`Campaign archived and hidden from public. Donor records preserved.`)
+      }
+    } catch {
+      window.alert('Could not delete campaign. Please try again.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   if (loading) return <div className="text-center text-gray-500 py-12">Loading...</div>
 
@@ -87,12 +128,20 @@ export default function MyCampaigns() {
                   <ProgressBar current={c.raised} goal={c.goal} />
                   <div className="flex items-center justify-between mt-3">
                     <span className="text-xs text-gray-500">👥 {c.donorCount} donors · π {c.raised} raised</span>
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 items-center">
                       {isActive && (
                         <Link to={`/campaign/${c._id}/edit`} className="text-xs text-gray-500 hover:text-yellow-400 transition-colors">
                           ✏️ Edit
                         </Link>
                       )}
+                      <button
+                        onClick={() => handleDelete(c)}
+                        disabled={deletingId === c._id}
+                        className="text-xs text-red-600 hover:text-red-400 transition-colors disabled:opacity-50"
+                        title={c.donorCount > 0 ? 'Archive campaign' : 'Delete campaign'}
+                      >
+                        {deletingId === c._id ? '…' : c.donorCount > 0 ? '🗄️' : '🗑️'}
+                      </button>
                       <Link to={`/campaign/${c._id}`} className="text-xs text-yellow-400 hover:underline">
                         View →
                       </Link>

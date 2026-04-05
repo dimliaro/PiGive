@@ -5,10 +5,32 @@
  * Αυτό το module παρέχει async/await interface για τις κύριες λειτουργίες.
  */
 
+const SANDBOX = import.meta.env.VITE_SANDBOX !== 'false'
+
+/**
+ * Calls Pi.init() every time a Pi method is about to be used.
+ * Pi SDK ignores the call if already initialized, and throws a recognisable
+ * error if something is genuinely wrong — which will surface to the caller.
+ */
+function ensurePiInit(Pi) {
+  try {
+    Pi.init({ version: '2.0', sandbox: SANDBOX })
+  } catch (e) {
+    // "already initialized" is expected and fine — ignore it
+    if (
+      e?.message?.toLowerCase().includes('already') ||
+      e?.message?.toLowerCase().includes('initialized')
+    ) return
+    // Any other init error: log but don't swallow so caller sees it
+    console.warn('[Rippl] Pi.init:', e.message)
+  }
+}
+
 const getPi = () => {
   if (typeof window === 'undefined' || !window.Pi) {
     throw new Error('Pi SDK not loaded. Make sure you are running inside Pi Browser.')
   }
+  ensurePiInit(window.Pi)
   return window.Pi
 }
 

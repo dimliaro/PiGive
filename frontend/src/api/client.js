@@ -77,3 +77,6 @@ export const getDonors = (campaignId) =>
 
 export const postCampaignUpdate = (campaignId, text, creatorPiUid) =>
   api.post(`/campaigns/${campaignId}/updates`, { text, creatorPiUid }).then(r => r.data)
+
+export const deleteCampaign = (id, creatorPiUid) =>
+  api.delete(`/campaigns/${id}`, { data: { creatorPiUid } }).then(r => r.data)

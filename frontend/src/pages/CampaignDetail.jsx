@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { getCampaign, getDonors, postCampaignUpdate, closeCampaign } from '../api/client'
+import { getCampaign, getDonors, postCampaignUpdate, closeCampaign, deleteCampaign } from '../api/client'
 import ProgressBar from '../components/ProgressBar'
 import DonateButton from '../components/DonateButton'
 import DonorAvatarWall from '../components/DonorAvatarWall'
@@ -54,6 +54,7 @@ export default function CampaignDetail() {
   const [updateText, setUpdateText] = useState('')
   const [postingUpdate, setPostingUpdate] = useState(false)
   const [closingCampaign, setClosingCampaign] = useState(false)
+  const [deletingCampaign, setDeletingCampaign] = useState(false)
   const [creatorUid, setCreatorUid] = useState('')
   const [timeLeft, setTimeLeft] = useState(null)
   const { pushDonation } = useDonationFeed()
@@ -141,6 +142,35 @@ export default function CampaignDetail() {
       // silently fail
     } finally {
       setClosingCampaign(false)
+    }
+  }
+
+  async function handleDelete() {
+    const hasDonors = campaign.donorCount > 0
+    const confirmMsg = hasDonors
+      ? `This campaign has ${campaign.donorCount} donor(s). It will be archived (hidden from public) — existing Pi donations cannot be refunded. Are you sure?`
+      : 'Delete this campaign permanently? This cannot be undone.'
+    if (!window.confirm(confirmMsg)) return
+
+    setDeletingCampaign(true)
+    try {
+      const result = await deleteCampaign(id, creatorUid)
+      if (result.action === 'deleted') {
+        // Remove from local storage too
+        try {
+          const ids = JSON.parse(localStorage.getItem('my_campaign_ids') || '[]')
+          localStorage.setItem('my_campaign_ids', JSON.stringify(ids.filter(x => x !== id)))
+        } catch {}
+        navigate('/')
+      } else {
+        // Archived — update UI to show it's no longer active
+        setCampaign(prev => ({ ...prev, isActive: false, isApproved: false }))
+        window.alert(`Campaign archived. It is now hidden from the public listing. ${result.donorCount} donor record(s) have been preserved.`)
+      }
+    } catch {
+      window.alert('Could not delete campaign. Please try again.')
+    } finally {
+      setDeletingCampaign(false)
     }
   }
 
@@ -236,14 +266,14 @@ export default function CampaignDetail() {
         )}
 
         {isCreator && (
-          <div className="flex gap-2 mb-4">
+          <div className="flex flex-wrap gap-2 mb-4">
             <Link
               to={`/campaign/${id}/edit`}
               className="text-xs px-3 py-1.5 rounded-full border border-yellow-400/30 text-yellow-400 hover:bg-yellow-400/10 transition-colors"
             >
               ✏️ Edit
             </Link>
-            {!isEnded && (
+            {!isEnded && campaign.isActive !== false && (
               <button
                 onClick={handleClose}
                 disabled={closingCampaign}
@@ -252,6 +282,13 @@ export default function CampaignDetail() {
                 {closingCampaign ? 'Closing...' : '🔒 Close early'}
               </button>
             )}
+            <button
+              onClick={handleDelete}
+              disabled={deletingCampaign}
+              className="text-xs px-3 py-1.5 rounded-full border border-red-800/40 text-red-500 hover:bg-red-900/20 transition-colors disabled:opacity-50"
+            >
+              {deletingCampaign ? 'Deleting...' : campaign.donorCount > 0 ? '🗄️ Archive' : '🗑️ Delete'}
+            </button>
           </div>
         )}
 

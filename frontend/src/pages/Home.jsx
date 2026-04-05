@@ -75,6 +75,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [quickDonateCampaign, setQuickDonateCampaign] = useState(null)
   const [visibleCount, setVisibleCount] = useState(6)
+  const [showFunded, setShowFunded] = useState(false)
   const { setCampaignCount } = useGlobalStats()
 
   useEffect(() => {
@@ -91,7 +92,7 @@ export default function Home() {
     if (filter && c.category !== filter) return false
     if (search && !c.title.toLowerCase().includes(search.toLowerCase())) return false
     if (smartFilter === 'new') return c.createdAt && (Date.now() - new Date(c.createdAt)) < 48 * 3600000
-    if (smartFilter === 'almost') return (c.raised / c.goal) >= 0.85
+    if (smartFilter === 'almost') return (c.raised / c.goal) >= 0.85 && (c.raised / c.goal) < 1
     return true
   }).sort((a, b) => {
     if (sort === 'funded') return (b.raised / b.goal) - (a.raised / a.goal)
@@ -99,12 +100,16 @@ export default function Home() {
     return new Date(b.createdAt) - new Date(a.createdAt) // newest
   })
 
-  // Featured = highest funded % that isn't ended
-  const featured = [...filtered]
+  // Split: campaigns still needing donations vs fully funded ones
+  const activeCampaigns = filtered.filter(c => c.raised < c.goal)
+  const fundedCampaigns = filtered.filter(c => c.raised >= c.goal)
+
+  // Featured = highest funded % among active, not expired
+  const featured = [...activeCampaigns]
     .filter(c => new Date(c.deadline) > Date.now())
     .sort((a, b) => (b.raised / b.goal) - (a.raised / a.goal))[0] || null
 
-  const rest = filtered.filter(c => c._id !== featured?._id)
+  const rest = activeCampaigns.filter(c => c._id !== featured?._id)
   const visibleRest = rest.slice(0, visibleCount)
   const hasMore = rest.length > visibleCount
 
@@ -182,11 +187,13 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Campaign grid */}
+      {/* Active campaign grid */}
       {loading ? (
         <div className="text-center text-gray-500 py-12">Loading...</div>
-      ) : rest.length === 0 ? (
+      ) : activeCampaigns.length === 0 && fundedCampaigns.length === 0 ? (
         <div className="text-center text-gray-500 py-12">No campaigns found.</div>
+      ) : activeCampaigns.length === 0 ? (
+        <div className="text-center text-gray-500 py-8">No active campaigns match your filters.</div>
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -205,6 +212,33 @@ export default function Home() {
             </div>
           )}
         </>
+      )}
+
+      {/* Funded campaigns — collapsible section */}
+      {!loading && fundedCampaigns.length > 0 && (
+        <div className="mt-10">
+          <button
+            onClick={() => setShowFunded(v => !v)}
+            className="w-full flex items-center justify-between px-5 py-4 rounded-2xl border border-yellow-400/20 bg-yellow-400/5 hover:bg-yellow-400/10 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">🏆</span>
+              <div className="text-left">
+                <p className="text-yellow-400 font-bold text-sm">Funded Campaigns</p>
+                <p className="text-yellow-400/60 text-xs">{fundedCampaigns.length} campaign{fundedCampaigns.length !== 1 ? 's' : ''} reached their goal</p>
+              </div>
+            </div>
+            <span className={`text-gray-500 text-sm transition-transform duration-200 ${showFunded ? 'rotate-180' : ''}`}>▼</span>
+          </button>
+
+          {showFunded && (
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {fundedCampaigns.map(c => (
+                <CampaignCard key={c._id} campaign={c} onQuickDonate={null} />
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Quick donate modal */}

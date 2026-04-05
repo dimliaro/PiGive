@@ -122,6 +122,32 @@ router.patch('/:id/close', async (req, res) => {
   }
 })
 
+// DELETE /api/campaigns/:id — Creator deletes (0 donations) or archives (has donations)
+router.delete('/:id', async (req, res) => {
+  try {
+    const { creatorPiUid } = req.body
+    const campaign = await Campaign.findById(req.params.id)
+    if (!campaign) return res.status(404).json({ error: 'Campaign not found' })
+    if (campaign.creatorPiUid && creatorPiUid !== campaign.creatorPiUid) {
+      return res.status(403).json({ error: 'Only the campaign creator can delete it' })
+    }
+
+    if (campaign.donorCount === 0) {
+      // Safe to fully delete — no donations were made
+      await Campaign.findByIdAndDelete(req.params.id)
+      return res.json({ action: 'deleted' })
+    } else {
+      // Donations exist — archive only (hide from public, keep records)
+      campaign.isActive = false
+      campaign.isApproved = false
+      await campaign.save()
+      return res.json({ action: 'archived', donorCount: campaign.donorCount })
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
 // GET /api/campaigns/:id/donors — Top donors for a campaign
 router.get('/:id/donors', async (req, res) => {
   try {
