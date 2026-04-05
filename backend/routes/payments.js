@@ -55,7 +55,7 @@ router.post('/approve', async (req, res) => {
  * Ο χρήστης επιβεβαίωσε στο Pi wallet — ολοκληρώνουμε server-side.
  */
 router.post('/complete', async (req, res) => {
-  const { paymentId, txid, campaignId } = req.body
+  const { paymentId, txid, campaignId, amount: clientAmount } = req.body
 
   if (!paymentId || !txid || !campaignId) {
     return res.status(400).json({ error: 'paymentId, txid, and campaignId are required' })
@@ -70,7 +70,8 @@ router.post('/complete', async (req, res) => {
     )
 
     const paymentData = piResponse.data
-    const amount = paymentData.amount
+    // Use Pi API amount if available, fall back to client-reported amount (sandbox)
+    const amount = paymentData.amount || clientAmount
 
     // Ενημέρωσε το donation record
     await Donation.findOneAndUpdate(

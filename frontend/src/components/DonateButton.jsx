@@ -40,7 +40,7 @@ export default function DonateButton({ campaign, onSuccess }) {
             await approvePayment(paymentId)
           },
           onComplete: async (paymentId, txid) => {
-            await completePayment(paymentId, txid, campaign._id)
+            await completePayment(paymentId, txid, campaign._id, finalAmount)
             setStatus('success')
             onSuccess && onSuccess(finalAmount)
           },

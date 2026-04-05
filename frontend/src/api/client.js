@@ -58,5 +58,5 @@ export const createCampaign = async (data) => {
 export const approvePayment = (paymentId) =>
   api.post('/payments/approve', { paymentId }).then(r => r.data)
 
-export const completePayment = (paymentId, txid, campaignId) =>
-  api.post('/payments/complete', { paymentId, txid, campaignId }).then(r => r.data)
+export const completePayment = (paymentId, txid, campaignId, amount) =>
+  api.post('/payments/complete', { paymentId, txid, campaignId, amount }).then(r => r.data)
