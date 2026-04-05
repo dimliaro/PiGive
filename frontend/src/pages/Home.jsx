@@ -68,6 +68,8 @@ const MOCK_CAMPAIGNS = [
 export default function Home() {
   const [campaigns, setCampaigns] = useState(MOCK_CAMPAIGNS)
   const [filter, setFilter] = useState('')
+  const [search, setSearch] = useState('')
+  const [smartFilter, setSmartFilter] = useState('') // 'new' | 'almost'
   const [loading, setLoading] = useState(false)
   const [quickDonateCampaign, setQuickDonateCampaign] = useState(null)
 
@@ -78,7 +80,17 @@ export default function Home() {
       .finally(() => setLoading(false))
   }, [])
 
-  const filtered = filter ? campaigns.filter(c => c.category === filter) : campaigns
+  const filtered = campaigns.filter(c => {
+    if (filter && c.category !== filter) return false
+    if (search && !c.title.toLowerCase().includes(search.toLowerCase())) return false
+    if (smartFilter === 'new') {
+      return c.createdAt && (Date.now() - new Date(c.createdAt)) < 48 * 3600000
+    }
+    if (smartFilter === 'almost') {
+      return (c.raised / c.goal) >= 0.85
+    }
+    return true
+  })
 
   // Featured = highest funded % that isn't ended
   const featured = [...filtered]
@@ -111,13 +123,45 @@ export default function Home() {
         </h1>
         <p className="text-gray-400 text-lg max-w-xl mx-auto leading-relaxed">
           Micro-donations for local social causes.<br />
-          <span className="text-white font-semibold">No fees. No banks. 100% on-chain.</span>
+          <span className="text-white font-semibold">0.01π network fee. No banks. 100% on-chain.</span>
         </p>
         <div className="mt-4 flex justify-center gap-6 text-sm">
-          <span className="text-gray-500">⚡ Zero fees</span>
+          <span className="text-gray-500">⚡ 0.01π fee</span>
           <span className="text-gray-500">🔗 Blockchain transparency</span>
           <span className="text-gray-500">📍 Hyper-local</span>
         </div>
+      </div>
+
+      {/* Search */}
+      <div className="mb-3">
+        <input
+          type="text"
+          placeholder="🔍 Search campaigns..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="w-full bg-white/[0.05] border border-white/[0.1] rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400/50 text-sm"
+        />
+      </div>
+
+      {/* Smart filters */}
+      <div className="flex gap-2 mb-3">
+        {[
+          { key: '', label: '⭐ All' },
+          { key: 'new', label: '✨ New' },
+          { key: 'almost', label: '⚡ Almost Funded' },
+        ].map(sf => (
+          <button
+            key={sf.key}
+            onClick={() => setSmartFilter(sf.key)}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 ${
+              smartFilter === sf.key
+                ? 'bg-yellow-400 text-gray-900 border-yellow-400'
+                : 'border-white/[0.08] bg-white/[0.03] text-gray-400 hover:border-white/20 hover:text-white'
+            }`}
+          >
+            {sf.label}
+          </button>
+        ))}
       </div>
 
       {/* Category filter */}

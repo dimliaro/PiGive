@@ -119,7 +119,7 @@ export default function DonateButton({ campaign, onSuccess }) {
       </button>
 
       <p className="text-xs text-gray-500 text-center">
-        Zero fees. 100% goes to the cause.
+        0.01π network fee applies. Rest goes to the cause.
       </p>
     </div>
   )
