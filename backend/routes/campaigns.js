@@ -81,7 +81,7 @@ router.get('/:id/donors', async (req, res) => {
     })
       .sort({ createdAt: -1 })
       .limit(50)
-      .select('donorUsername amount createdAt')
+      .select('donorUsername donorMessage amount createdAt')
 
     res.json(donations)
   } catch (err) {

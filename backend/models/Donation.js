@@ -28,6 +28,11 @@ const donationSchema = new mongoose.Schema(
     donorUsername: {
       type: String,
     },
+    donorMessage: {
+      type: String,
+      maxlength: 150,
+      default: '',
+    },
     status: {
       type: String,
       enum: ['pending', 'approved', 'completed', 'cancelled'],

@@ -7,6 +7,7 @@ const PRESET_AMOUNTS = [0.5, 1, 2, 5]
 export default function DonateButton({ campaign, onSuccess }) {
   const [amount, setAmount] = useState(1)
   const [customAmount, setCustomAmount] = useState('')
+  const [message, setMessage] = useState('')
   const [status, setStatus] = useState('idle') // idle | auth | waiting | success | error
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -41,9 +42,9 @@ export default function DonateButton({ campaign, onSuccess }) {
             await approvePayment(paymentId)
           },
           onComplete: async (paymentId, txid) => {
-            await completePayment(paymentId, txid, campaign._id, finalAmount, donorUsername)
+            await completePayment(paymentId, txid, campaign._id, finalAmount, donorUsername, message)
             setStatus('success')
-            onSuccess && onSuccess(finalAmount, donorUsername)
+            onSuccess && onSuccess(finalAmount, donorUsername, message)
           },
           onCancel: () => {
             setStatus('idle')
@@ -102,6 +103,18 @@ export default function DonateButton({ campaign, onSuccess }) {
           className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
           min="0.1"
           step="0.1"
+        />
+      </div>
+
+      {/* Optional message */}
+      <div>
+        <input
+          type="text"
+          placeholder="Leave a message (optional)..."
+          value={message}
+          onChange={e => setMessage(e.target.value.slice(0, 150))}
+          className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 text-sm"
+          maxLength={150}
         />
       </div>
 

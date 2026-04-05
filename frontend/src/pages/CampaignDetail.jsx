@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getCampaign, getDonors, postCampaignUpdate } from '../api/client'
 import ProgressBar from '../components/ProgressBar'
@@ -25,6 +25,25 @@ const MOCK = {
   },
 }
 
+function getTimeLeft(deadline) {
+  const diff = new Date(deadline) - Date.now()
+  if (diff <= 0) return { expired: true, hours: 0, minutes: 0, days: 0 }
+  const days = Math.floor(diff / 86400000)
+  const hours = Math.floor(diff / 3600000)
+  const minutes = Math.floor((diff % 3600000) / 60000)
+  return { expired: false, days, hours, minutes }
+}
+
+function setMetaTag(property, content) {
+  let el = document.querySelector(`meta[property="${property}"]`)
+  if (!el) {
+    el = document.createElement('meta')
+    el.setAttribute('property', property)
+    document.head.appendChild(el)
+  }
+  el.setAttribute('content', content)
+}
+
 export default function CampaignDetail() {
   const { id } = useParams()
   const [campaign, setCampaign] = useState(null)
@@ -34,11 +53,11 @@ export default function CampaignDetail() {
   const [updateText, setUpdateText] = useState('')
   const [postingUpdate, setPostingUpdate] = useState(false)
   const [creatorUid, setCreatorUid] = useState('')
+  const [timeLeft, setTimeLeft] = useState(null)
   const { pushDonation } = useDonationFeed()
   const { triggerConfetti } = useConfetti()
 
   useEffect(() => {
-    // Try to get current user's Pi UID to check if they're the creator
     if (window.Pi) {
       window.Pi.authenticate(['username'], () => {})
         .then(r => setCreatorUid(r?.user?.uid || ''))
@@ -52,28 +71,62 @@ export default function CampaignDetail() {
       .catch(() => setCampaign(MOCK[id] || null))
       .finally(() => setLoading(false))
 
-    // Fetch real donors (non-critical — silently ignore failures)
     getDonors(id).then(setDonors).catch(() => {})
   }, [id])
 
-  function handleDonationSuccess(amount, donorUsername) {
+  // Live countdown — refresh every minute when under 48h
+  useEffect(() => {
+    if (!campaign) return
+    const tl = getTimeLeft(campaign.deadline)
+    setTimeLeft(tl)
+    if (tl.expired || tl.hours >= 48) return
+    const id = setInterval(() => setTimeLeft(getTimeLeft(campaign.deadline)), 60000)
+    return () => clearInterval(id)
+  }, [campaign])
+
+  // OG meta tags for rich link previews
+  useEffect(() => {
+    if (!campaign) return
+    const pct = Math.round((campaign.raised / campaign.goal) * 100)
+    const desc = `${pct}% funded · π${campaign.raised} raised of π${campaign.goal} goal · Support this cause on Rippl`
+    const image = campaign.imageUrl || `${window.location.origin}/rippl-logo.png`
+
+    setMetaTag('og:title', campaign.title)
+    setMetaTag('og:description', desc)
+    setMetaTag('og:image', image)
+    setMetaTag('og:url', window.location.href)
+    setMetaTag('og:type', 'website')
+    document.title = `${campaign.title} — Rippl`
+
+    return () => {
+      setMetaTag('og:title', 'Rippl — Micro-Donations with Pi')
+      setMetaTag('og:description', 'Micro-donations for local social causes. 0.01π fee. No banks.')
+      setMetaTag('og:image', `${window.location.origin}/rippl-logo.png`)
+      document.title = 'Rippl — Micro-Donations with Pi'
+    }
+  }, [campaign])
+
+  function handleDonationSuccess(amount, donorUsername, donorMessage) {
     setCampaign(prev => ({
       ...prev,
       raised: +(prev.raised + amount).toFixed(2),
       donorCount: prev.donorCount + 1,
     }))
-    if (donorUsername) {
-      setDonors(prev => [{ donorUsername, amount, createdAt: new Date().toISOString() }, ...prev])
-    }
+    const newDonor = { donorUsername, donorMessage, amount, createdAt: new Date().toISOString() }
+    setDonors(prev => [newDonor, ...prev])
     pushDonation(donorUsername || 'you', amount, campaign.title)
     triggerConfetti()
   }
 
   function handleShare() {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
+    if (navigator.share) {
+      navigator.share({ title: campaign.title, url: window.location.href }).catch(() => {})
+    } else {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      })
+    }
   }
 
   async function handlePostUpdate(e) {
@@ -99,10 +152,15 @@ export default function CampaignDetail() {
     </div>
   )
 
-  const daysLeft = Math.max(0, Math.ceil((new Date(campaign.deadline) - Date.now()) / 86400000))
+  const tl = timeLeft || getTimeLeft(campaign.deadline)
+  const daysLeft = tl.days
+  const isEnded = tl.expired
+  const isUrgent = !isEnded && tl.hours < 48
   const pct = Math.min(100, Math.round((campaign.raised / campaign.goal) * 100))
+  const isAlmostFunded = pct >= 85 && pct < 100 && !isEnded
   const isCreator = campaign.creatorPiUid && creatorUid && campaign.creatorPiUid === creatorUid
   const isVerified = !!campaign.creatorPiUid
+  const donorsWithMessages = donors.filter(d => d.donorMessage && d.donorMessage.trim())
 
   return (
     <div className="max-w-2xl mx-auto pb-12">
@@ -118,6 +176,19 @@ export default function CampaignDetail() {
         </button>
       </div>
 
+      {/* Almost there nudge */}
+      {isAlmostFunded && (
+        <div className="mb-5 rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-5 py-4 flex items-center gap-3">
+          <span className="text-2xl">⚡</span>
+          <div>
+            <p className="text-yellow-400 font-bold text-sm">Almost there!</p>
+            <p className="text-yellow-400/80 text-sm">
+              Just <span className="font-bold">π{(campaign.goal - campaign.raised).toFixed(2)}</span> away from the goal. One more donation could do it.
+            </p>
+          </div>
+        </div>
+      )}
+
       {campaign.imageUrl && (
         <div className="mb-5 overflow-hidden rounded-2xl h-48">
           <img src={campaign.imageUrl} alt={campaign.title} className="w-full h-full object-cover" onError={e => e.target.parentElement.style.display = 'none'} />
@@ -128,7 +199,7 @@ export default function CampaignDetail() {
         <h1 className="text-2xl font-extrabold text-white mb-2 leading-snug">{campaign.title}</h1>
 
         {campaign.organizer && (
-          <p className="text-sm text-gray-500 mb-4 flex items-center gap-1.5">
+          <p className="text-sm text-gray-500 mb-4 flex items-center gap-1.5 flex-wrap">
             Organized by <span className="text-gray-300 font-medium">{campaign.organizer}</span>
             {isVerified && (
               <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-400">
@@ -142,16 +213,24 @@ export default function CampaignDetail() {
 
         <ProgressBar current={campaign.raised} goal={campaign.goal} />
 
-        <div className="flex gap-5 mt-4 text-sm text-gray-500">
+        <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-500">
           <span>👥 {campaign.donorCount.toLocaleString()} donors</span>
-          <span>{daysLeft > 0 ? `⏳ ${daysLeft} days left` : '🔒 Ended'}</span>
+          {isEnded ? (
+            <span>🔒 Ended</span>
+          ) : isUrgent ? (
+            <span className="text-orange-400 font-semibold">
+              🔥 {tl.hours}h {tl.minutes}m left
+            </span>
+          ) : (
+            <span>⏳ {daysLeft} days left</span>
+          )}
           <span>📊 {pct}% funded</span>
         </div>
 
         <DonorAvatarWall donorCount={campaign.donorCount} donors={donors} />
       </div>
 
-      {daysLeft > 0 ? (
+      {!isEnded ? (
         <div className="card mb-5">
           <h2 className="font-bold text-lg mb-4 text-white">Donate with Pi</h2>
           <DonateButton campaign={campaign} onSuccess={handleDonationSuccess} />
@@ -159,6 +238,23 @@ export default function CampaignDetail() {
       ) : (
         <div className="card text-center text-gray-500 py-6 mb-5">
           This campaign has ended. Thank you to all {campaign.donorCount} donors! 🎉
+        </div>
+      )}
+
+      {/* Donor messages */}
+      {donorsWithMessages.length > 0 && (
+        <div className="card mb-5">
+          <h2 className="font-bold text-lg mb-4 text-white">💬 What donors are saying</h2>
+          <div className="space-y-3">
+            {donorsWithMessages.slice(0, 8).map((d, i) => (
+              <div key={i} className="bg-white/[0.04] rounded-xl px-4 py-3 border border-white/[0.06]">
+                <p className="text-gray-300 text-sm leading-relaxed">"{d.donorMessage}"</p>
+                <p className="text-xs text-gray-600 mt-1.5">
+                  — {d.donorUsername || 'Anonymous Pioneer'} · π{d.amount}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
