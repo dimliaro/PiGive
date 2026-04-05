@@ -5,12 +5,11 @@ export default function Navbar() {
     <nav className="glass-nav sticky top-0 z-50 relative">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
-          <span
-            style={{ fontFamily: "'Cinzel', serif", fontSize: '1.6rem', lineHeight: 1 }}
-            className="text-yellow-400 drop-shadow-[0_0_8px_rgba(240,192,64,0.6)] group-hover:drop-shadow-[0_0_14px_rgba(240,192,64,0.9)] transition-all"
-          >
-            π
-          </span>
+          <img
+            src="/rippl-logo.png"
+            alt="Rippl"
+            className="w-8 h-8 rounded-lg object-cover group-hover:opacity-90 transition-opacity"
+          />
           <span className="font-extrabold text-xl text-white tracking-tight">
             Rip<span className="text-yellow-400">pl</span>
           </span>
