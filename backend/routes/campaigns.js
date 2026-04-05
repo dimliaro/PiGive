@@ -72,6 +72,56 @@ router.post(
   }
 )
 
+// PUT /api/campaigns/:id — Creator edits campaign
+router.put(
+  '/:id',
+  [
+    body('description').optional().trim().isLength({ max: 500 }),
+    body('imageUrl').optional().trim(),
+    body('extraDays').optional().isInt({ min: 1, max: 30 }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) return res.status(400).json({ error: errors.array()[0].msg })
+
+    try {
+      const { creatorPiUid, description, imageUrl, extraDays } = req.body
+      const campaign = await Campaign.findById(req.params.id)
+      if (!campaign) return res.status(404).json({ error: 'Campaign not found' })
+      if (campaign.creatorPiUid && creatorPiUid !== campaign.creatorPiUid) {
+        return res.status(403).json({ error: 'Only the campaign creator can edit' })
+      }
+
+      if (description !== undefined) campaign.description = description
+      if (imageUrl !== undefined) campaign.imageUrl = imageUrl
+      if (extraDays) campaign.deadline = new Date(campaign.deadline.getTime() + extraDays * 86400000)
+
+      await campaign.save()
+      res.json(campaign)
+    } catch (err) {
+      res.status(500).json({ error: 'Server error' })
+    }
+  }
+)
+
+// PATCH /api/campaigns/:id/close — Creator closes campaign early
+router.patch('/:id/close', async (req, res) => {
+  try {
+    const { creatorPiUid } = req.body
+    const campaign = await Campaign.findById(req.params.id)
+    if (!campaign) return res.status(404).json({ error: 'Campaign not found' })
+    if (campaign.creatorPiUid && creatorPiUid !== campaign.creatorPiUid) {
+      return res.status(403).json({ error: 'Only the campaign creator can close it' })
+    }
+
+    campaign.isActive = false
+    await campaign.save()
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
 // GET /api/campaigns/:id/donors — Top donors for a campaign
 router.get('/:id/donors', async (req, res) => {
   try {

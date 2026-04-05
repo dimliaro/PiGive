@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { getCampaign, getDonors, postCampaignUpdate } from '../api/client'
+import { useState, useEffect } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { getCampaign, getDonors, postCampaignUpdate, closeCampaign } from '../api/client'
 import ProgressBar from '../components/ProgressBar'
 import DonateButton from '../components/DonateButton'
 import DonorAvatarWall from '../components/DonorAvatarWall'
@@ -46,12 +46,14 @@ function setMetaTag(property, content) {
 
 export default function CampaignDetail() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [campaign, setCampaign] = useState(null)
   const [donors, setDonors] = useState([])
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
   const [updateText, setUpdateText] = useState('')
   const [postingUpdate, setPostingUpdate] = useState(false)
+  const [closingCampaign, setClosingCampaign] = useState(false)
   const [creatorUid, setCreatorUid] = useState('')
   const [timeLeft, setTimeLeft] = useState(null)
   const { pushDonation } = useDonationFeed()
@@ -126,6 +128,19 @@ export default function CampaignDetail() {
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
       })
+    }
+  }
+
+  async function handleClose() {
+    if (!window.confirm('Close this campaign early? Donors will no longer be able to contribute.')) return
+    setClosingCampaign(true)
+    try {
+      await closeCampaign(id, creatorUid)
+      setCampaign(prev => ({ ...prev, isActive: false }))
+    } catch {
+      // silently fail
+    } finally {
+      setClosingCampaign(false)
     }
   }
 
@@ -207,6 +222,26 @@ export default function CampaignDetail() {
               </span>
             )}
           </p>
+        )}
+
+        {isCreator && (
+          <div className="flex gap-2 mb-4">
+            <Link
+              to={`/campaign/${id}/edit`}
+              className="text-xs px-3 py-1.5 rounded-full border border-yellow-400/30 text-yellow-400 hover:bg-yellow-400/10 transition-colors"
+            >
+              ✏️ Edit
+            </Link>
+            {!isEnded && (
+              <button
+                onClick={handleClose}
+                disabled={closingCampaign}
+                className="text-xs px-3 py-1.5 rounded-full border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+              >
+                {closingCampaign ? 'Closing...' : '🔒 Close early'}
+              </button>
+            )}
+          </div>
         )}
 
         <p className="text-gray-300 mb-6 leading-relaxed">{campaign.description}</p>

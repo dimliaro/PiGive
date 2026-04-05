@@ -3,6 +3,7 @@ const axios = require('axios')
 const Campaign = require('../models/Campaign')
 const Donation = require('../models/Donation')
 
+
 const router = express.Router()
 
 const PI_API_BASE = 'https://api.minepi.com/v2'
@@ -134,6 +135,23 @@ router.post('/incomplete', async (req, res) => {
   } catch (err) {
     console.error('Incomplete payment handler error:', err.response?.data || err.message)
     res.status(500).json({ error: 'Failed to handle incomplete payment' })
+  }
+})
+
+/**
+ * GET /api/payments/receipt/:paymentId
+ * Returns a completed donation record for receipt display.
+ */
+router.get('/receipt/:paymentId', async (req, res) => {
+  try {
+    const donation = await Donation.findOne({ paymentId: req.params.paymentId, status: 'completed' })
+      .select('paymentId txid campaignId amount donorUsername donorMessage createdAt')
+    if (!donation) return res.status(404).json({ error: 'Receipt not found' })
+
+    const campaign = await Campaign.findById(donation.campaignId).select('title organizer')
+    res.json({ donation, campaign })
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
   }
 })
 

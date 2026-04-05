@@ -61,6 +61,15 @@ export const approvePayment = (paymentId) =>
 export const completePayment = (paymentId, txid, campaignId, amount, donorUsername, donorMessage) =>
   api.post('/payments/complete', { paymentId, txid, campaignId, amount, donorUsername, donorMessage }).then(r => r.data)
 
+export const editCampaign = (id, data) =>
+  api.put(`/campaigns/${id}`, data).then(r => r.data)
+
+export const closeCampaign = (id, creatorPiUid) =>
+  api.patch(`/campaigns/${id}/close`, { creatorPiUid }).then(r => r.data)
+
+export const getDonationReceipt = (paymentId) =>
+  api.get(`/payments/receipt/${paymentId}`).then(r => r.data)
+
 // --- Donors & Updates ---
 
 export const getDonors = (campaignId) =>

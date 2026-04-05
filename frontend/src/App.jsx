@@ -7,6 +7,8 @@ import Home from './pages/Home'
 import CampaignDetail from './pages/CampaignDetail'
 import CreateCampaign from './pages/CreateCampaign'
 import MyCampaigns from './pages/MyCampaigns'
+import EditCampaign from './pages/EditCampaign'
+import DonationReceipt from './pages/DonationReceipt'
 
 export default function App() {
   return (
@@ -20,6 +22,8 @@ export default function App() {
           <Route path="/campaign/:id" element={<CampaignDetail />} />
           <Route path="/create" element={<CreateCampaign />} />
           <Route path="/my-campaigns" element={<MyCampaigns />} />
+          <Route path="/campaign/:id/edit" element={<EditCampaign />} />
+          <Route path="/donation/:paymentId" element={<DonationReceipt />} />
         </Routes>
       </main>
       <ActivityTicker />
