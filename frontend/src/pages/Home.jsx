@@ -119,22 +119,10 @@ export default function Home() {
 
   return (
     <div className="pb-12">
-      {/* Hero */}
-      <div className="text-center mb-8">
-        <h1 className="text-5xl font-black mb-3 tracking-tight flex items-center justify-center gap-3">
-          <img src="/rippl-logo.png" alt="Rippl" className="w-12 h-12 drop-shadow-[0_0_16px_rgba(240,192,64,0.5)]" />
-          <span>Rip<span className="text-yellow-400">pl</span></span>
-        </h1>
-        <p className="text-gray-400 text-lg max-w-xl mx-auto leading-relaxed">
-          Micro-donations for local social causes.<br />
-          <span className="text-white font-semibold">0.01π network fee. No banks. 100% on-chain.</span>
-        </p>
-        <div className="mt-4 flex justify-center gap-6 text-sm">
-          <span className="text-gray-500">⚡ 0.01π fee</span>
-          <span className="text-gray-500">🔗 Blockchain transparency</span>
-          <span className="text-gray-500">📍 Hyper-local</span>
-        </div>
-      </div>
+      {/* Featured hero — first thing you see */}
+      {!loading && featured && (
+        <FeaturedHero campaign={featured} onQuickDonate={setQuickDonateCampaign} />
+      )}
 
       {/* Search + Sort */}
       <div className="flex gap-2 mb-3">
@@ -193,11 +181,6 @@ export default function Home() {
           </button>
         ))}
       </div>
-
-      {/* Featured hero */}
-      {!loading && featured && (
-        <FeaturedHero campaign={featured} onQuickDonate={setQuickDonateCampaign} />
-      )}
 
       {/* Campaign grid */}
       {loading ? (

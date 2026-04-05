@@ -1,99 +1,99 @@
 import { Link } from 'react-router-dom'
-import ProgressBar from './ProgressBar'
 
-const CATEGORY_GRADIENTS = {
-  school:       'from-blue-900/40 to-transparent',
-  animal:       'from-emerald-900/40 to-transparent',
-  sports:       'from-orange-900/40 to-transparent',
-  neighborhood: 'from-violet-900/40 to-transparent',
-  other:        'from-yellow-900/30 to-transparent',
+const CATEGORY_BG = {
+  school:       'from-blue-950 via-blue-900 to-indigo-900',
+  animal:       'from-emerald-950 via-emerald-900 to-teal-900',
+  sports:       'from-orange-950 via-orange-900 to-amber-900',
+  neighborhood: 'from-violet-950 via-violet-900 to-purple-900',
+  other:        'from-yellow-950 via-yellow-900 to-amber-900',
 }
 
 const CATEGORY_EMOJI = {
   school: '🏫', animal: '🐾', sports: '⚽', neighborhood: '🏘️', other: '💛',
 }
 
-const RADIUS = 54
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS
-
 export default function FeaturedHero({ campaign, onQuickDonate }) {
   if (!campaign) return null
 
   const pct      = Math.min(100, (campaign.raised / campaign.goal) * 100)
-  const offset   = CIRCUMFERENCE * (1 - pct / 100)
   const daysLeft = Math.max(0, Math.ceil((new Date(campaign.deadline) - Date.now()) / 86400000))
-  const gradient = CATEGORY_GRADIENTS[campaign.category] || CATEGORY_GRADIENTS.other
+  const bgClass  = CATEGORY_BG[campaign.category] || CATEGORY_BG.other
+  const emoji    = CATEGORY_EMOJI[campaign.category] || '💛'
 
   return (
-    <div className={`card card-glow hero-shimmer mb-6 bg-gradient-to-r ${gradient}`}>
-      <div className="flex items-start justify-between gap-4">
-        {/* Left: content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full badge-funded">
-              ⭐ FEATURED
-            </span>
-            <span className="text-xs text-gray-500">
-              {CATEGORY_EMOJI[campaign.category]} {campaign.category}
-            </span>
+    <div className="relative rounded-2xl overflow-hidden mb-6 h-[400px] sm:h-[460px] group">
+
+      {/* Background — image or gradient */}
+      {campaign.imageUrl ? (
+        <img
+          src={campaign.imageUrl}
+          alt={campaign.title}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          onError={e => e.target.style.display = 'none'}
+        />
+      ) : (
+        <div className={`absolute inset-0 bg-gradient-to-br ${bgClass}`} />
+      )}
+
+      {/* Gradient overlay — bottom-heavy for text legibility */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-black/10" />
+
+      {/* Top badge */}
+      <div className="absolute top-4 left-4 flex items-center gap-2">
+        <span className="text-xs font-bold px-3 py-1 rounded-full bg-yellow-400 text-gray-900">
+          ⭐ FEATURED
+        </span>
+        <span className="text-xs text-white/70 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">
+          {emoji} {campaign.category}
+        </span>
+      </div>
+
+      {/* Content pinned to bottom */}
+      <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-7">
+
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-2 leading-tight drop-shadow">
+          {campaign.title}
+        </h2>
+
+        <p className="text-gray-300 text-sm mb-5 line-clamp-2 max-w-lg leading-relaxed">
+          {campaign.description}
+        </p>
+
+        {/* Progress bar */}
+        <div className="mb-4">
+          <div className="flex justify-between text-xs text-gray-400 mb-1.5">
+            <span className="text-white font-semibold">π {campaign.raised} raised</span>
+            <span>{Math.round(pct)}% of π {campaign.goal}</span>
           </div>
-
-          <h2 className="text-xl font-extrabold text-white mb-2 leading-snug">
-            {campaign.title}
-          </h2>
-          <p className="text-gray-400 text-sm mb-4 line-clamp-2">{campaign.description}</p>
-
-          <ProgressBar current={campaign.raised} goal={campaign.goal} />
-
-          <div className="flex items-center gap-4 mt-3 mb-4 text-xs text-gray-500">
-            <span>👥 {campaign.donorCount} donors</span>
-            <span>⏳ {daysLeft > 0 ? `${daysLeft} days left` : 'Ended'}</span>
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              onClick={() => onQuickDonate(campaign)}
-              className="btn-gold text-gray-900 font-bold px-5 py-2 rounded-xl text-sm"
-            >
-              Donate Now π
-            </button>
-            <Link
-              to={`/campaign/${campaign._id}`}
-              className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1 px-3 py-2"
-            >
-              Full details →
-            </Link>
+          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-yellow-400 rounded-full transition-all duration-700"
+              style={{ width: `${pct}%` }}
+            />
           </div>
         </div>
 
-        {/* Right: SVG ring */}
-        <div className="hidden sm:flex flex-col items-center justify-center flex-shrink-0">
-          <svg width="130" height="130" viewBox="0 0 130 130">
-            {/* Track */}
-            <circle
-              cx="65" cy="65" r={RADIUS}
-              fill="none"
-              stroke="rgba(255,255,255,0.06)"
-              strokeWidth="8"
-            />
-            {/* Progress */}
-            <circle
-              cx="65" cy="65" r={RADIUS}
-              fill="none"
-              stroke="#f0c040"
-              strokeWidth="8"
-              strokeLinecap="round"
-              strokeDasharray={CIRCUMFERENCE}
-              strokeDashoffset={offset}
-              className="ring-circle"
-            />
-            <text x="65" y="62" textAnchor="middle" fill="#f0c040" fontSize="20" fontWeight="800">
-              {Math.round(pct)}%
-            </text>
-            <text x="65" y="78" textAnchor="middle" fill="#6b7280" fontSize="10">
-              funded
-            </text>
-          </svg>
+        {/* Bottom row */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex gap-4 text-xs text-gray-400">
+            <span>👥 {campaign.donorCount.toLocaleString()} donors</span>
+            <span>{daysLeft > 0 ? `⏳ ${daysLeft} days left` : '🔒 Ended'}</span>
+          </div>
+
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={() => onQuickDonate(campaign)}
+              className="bg-yellow-400 text-gray-900 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-yellow-300 transition-colors"
+            >
+              Donate π
+            </button>
+            <Link
+              to={`/campaign/${campaign._id}`}
+              className="text-sm text-white/70 hover:text-white border border-white/20 hover:border-white/40 px-4 py-2.5 rounded-xl transition-colors backdrop-blur-sm"
+            >
+              Details →
+            </Link>
+          </div>
         </div>
       </div>
     </div>
